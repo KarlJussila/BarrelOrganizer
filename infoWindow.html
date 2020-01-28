@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Barrel Info</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css">
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+		<script src="https://rawgit.com/jackmoore/autosize/master/dist/autosize.min.js"></script>
+	</head>
+	<body>
+
+		<div class="navbar-fixed z-depth-2" style="user-select:none;">
+			<nav>
+				<div class="nav-wrapper grey darken-3">
+					<img src="assets/logo-lg.svg" type="image/svg+xml" style="width:120px;height:40px;" hspace="10" vspace="12">
+					<a id="barrelId" class="brand-logo center">Barrel Organizer</a>
+					<ul class="right">
+						<li>
+							<a href="#" onclick="closeWindow()"><i id="close" class="large material-icons">close</i></a>
+						</li>
+					</ul>
+				</div>
+			</nav>
+		</div>
+
+		<div class="container">
+			<form class="col s12" style="padding-top:20px;">
+				<div class="row">
+					<div class="input-field">
+						<input type="text" id="barrelContents">
+						<label class="active grey-text text-darken-2" for="barrelContents" style="user-select:none;">Barrel Contents</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field">
+						<input type="text" id="barrelYear">
+						<label class="active grey-text text-darken-2" for="barrelYear" style="user-select:none;">Vintage</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field">
+						<input type="text" id="dateCleaned">
+						<label class="active grey-text text-darken-2" for="dateCleaned" style="user-select:none;">Cleaned</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field">
+						<input type="text" id="dateOzinated">
+						<label class="active grey-text text-darken-2" for="dateOzinated" style="user-select:none;">Ozinated</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field">
+						<input type="text" id="dateToppedOff">
+						<label class="active grey-text text-darken-2" for="dateToppedOff" style="user-select:none;">Topped Off</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field">
+						<input type="text" id="barrelSulfur">
+						<label class="active grey-text text-darken-2" for="barrelSulfur" style="user-select:none;">Sulfur</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field">
+						<input type="text" id="barrelCooper">
+						<label class="active grey-text text-darken-2" for="barrelCooper" style="user-select:none;">Cooper</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field">
+						<input type="text" id="barrelToast">
+						<label class="active grey-text text-darken-2" for="barrelToast" style="user-select:none;">Toast</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field">
+						<input type="text" id="barrelRegion">
+						<label class="active grey-text text-darken-2" for="barrelRegion" style="user-select:none;">Region</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field">
+						<input type="text" id="barrelSize">
+						<label class="active grey-text text-darken-2" for="barrelSize" style="user-select:none;">Size</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field">
+						<textarea rows="20" class="materialize-textarea" id="barrelComments"></textarea>
+						<label class="active grey-text text-darken-2" for="barrelComments" style="user-select:none;">Comments</label>
+					</div>
+				</div>
+				<div class="row">
+					<div style="padding-bottom:20px;user-select:none;">
+						<button class="btn waves-effect waves-light grey darken-3" type="submit">Submit</button>
+						<button class="btn waves-effect waves-light grey darken-3" type="button" onclick="deleteBarrel()">Delete Barrel</button>
+						<button class="btn waves-effect waves-light grey darken-3" type="button" onclick="closeWindow()">Cancel</button>
+					</div>
+				</div>
+			</form>
+		</div>
+
+		<style>
+			/* label color */
+			.input-field label {
+				color: #000;
+			}
+			/* label focus color */
+			.row .input-field input:focus + label {
+				color: #000;
+			}
+			/* label underline focus color */
+			.row .input-field input[type=text]:focus {
+				border-bottom: 1px solid #6C6C6C;
+				box-shadow: 0 1px 0 0 #6C6C6C;
+			}
+			/* valid color */
+			.input-field input[type=text].valid {
+				border-bottom: 1px solid #000;
+				box-shadow: 0 1px 0 0 #000;
+			}
+			/* invalid color */
+			.input-field input[type=text].invalid {
+				border-bottom: 1px solid #000;
+				box-shadow: 0 1px 0 0 #000;
+			}
+			/* icon prefix focus color */
+			.input-field .prefix.active {
+				color: #000;
+			}
+		</style>
+
+		<script>
+			const electron = require('electron');
+			const {ipcRenderer, remote} = electron;
+
+			form = document.querySelector('form');
+			form.addEventListener('submit', submitForm);
+
+			var barrel = null;
+
+			//Getting HTML
+			var barrelComments = document.querySelector('#barrelComments');
+
+			var barrelId = document.querySelector('#barrelId');
+			var barrelContents = document.querySelector('#barrelContents');
+			var barrelYear = document.querySelector('#barrelYear');
+			var dateCleaned = document.querySelector('#dateCleaned');
+			var dateOzinated = document.querySelector('#dateOzinated');
+			var dateToppedOff = document.querySelector('#dateToppedOff');
+			var barrelSulfur = document.querySelector('#barrelSulfur');
+			var barrelCooper = document.querySelector('#barrelCooper');
+			var barrelToast = document.querySelector('#barrelToast');
+			var barrelRegion = document.querySelector('#barrelRegion');
+			var barrelSize = document.querySelector('#barrelSize');
+
+			//When opened
+			ipcRenderer.on('barrel:info', function(e, b) {
+
+				barrel = b
+
+				//Filling HTML with info
+				barrelId.innerHTML = barrel._id;
+				barrelContents.value = barrel.contents;
+				barrelYear.value = barrel.year;
+				dateCleaned.value = barrel.cleaned;
+				dateOzinated.value = barrel.ozinated;
+				dateToppedOff.value = barrel.toppedOff;
+				barrelSulfur.value = barrel.sulfur;
+				barrelCooper.value = barrel.cooper;
+				barrelToast.value = barrel.toast;
+				barrelRegion.value = barrel.region;
+				barrelSize.value = barrel.size;
+				barrelComments.value = barrel.comments;
+				autosize(barrelComments);
+
+			});
+
+			//On delete
+			function deleteBarrel() {
+				ipcRenderer.send('barrel:remove', barrel._id)
+				ipcRenderer.send('info:close');
+				ipcRenderer.send('barrel:reload')
+			}
+
+			//On submit
+			function submitForm(e) {
+				e.preventDefault();
+				barrel.contents = barrelContents.value;
+				barrel.year = barrelYear.value;
+				barrel.cleaned = dateCleaned.value;
+				barrel.ozinated = dateOzinated.value;
+				barrel.toppedOff = dateToppedOff.value;
+				barrel.sulfur = barrelSulfur.value;
+				barrel.cooper = barrelCooper.value;
+				barrel.toast = barrelToast.value;
+				barrel.region = barrelRegion.value;
+				barrel.size = barrelSize.value;
+				barrel.comments = barrelComments.value;
+				ipcRenderer.send('barrel:update', barrel);
+				ipcRenderer.send('info:close');
+			}
+
+			function closeWindow() {
+				remote.getCurrentWindow().close();
+			}
+		</script>
+
+	</body>
+</html>

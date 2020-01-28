@@ -1,0 +1,37 @@
+{
+  "name": "barrel-organizer",
+  "productName": "Barrel Organizer",
+  "version": "2.0.0",
+  "description": "Application for keeping track of barrels",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "build --dir",
+    "dist": "build"
+  },
+  "author": "Karl Jussila",
+  "license": "MIT",
+  "dependencies": {
+    "nedb": "^1.8.0"
+  },
+  "devDependencies": {
+    "electron": "^2.0.16",
+    "electron-builder": "^20.44.4"
+  },
+  "build": {
+    "dmg": {
+      "contents": [
+        {
+          "x": 110,
+          "y": 150
+        },
+        {
+          "x": 240,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
+  }
+}

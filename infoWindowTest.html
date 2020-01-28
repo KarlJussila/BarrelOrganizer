@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Barrel Info</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css">
+	</head>
+	<body>
+		<div class="container">
+			<h2 id="barrelId"></h2>
+			<form class="col s12">
+
+				<div class="row">
+					<div class="input-field col s12">
+						<input value="" id="barrelContents" type="text" class="validate">
+						<label class="active" for="barrelContents">Contents</label>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="input-field col s12">
+						<input value="" id="barrelYear" type="text" class="validate">
+						<label class="active" for="barrelYear">Year</label>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="input-field col s12">
+						<input value="" id="dateCleaned" type="text" class="validate">
+						<label class="active" for="dateCleaned">Cleaned</label>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="input-field col s12">
+						<input value="" id="dateOzinated" type="text" class="validate">
+						<label class="active" for="dateOzinated">Ozinated</label>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="input-field col s12">
+						<input value="" id="dateToppedOff" type="text" class="validate">
+						<label class="active" for="dateToppedOff">Topped off</label>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="input-field col s12">
+						<button class="btn waves-effect waves-light" type="submit">Submit</button>
+						<button class="btn waves-effect waves-light" type="button" onClick="deleteBarrel()">Delete Barrel</button>
+					</div>
+				</div>
+
+				<p></p>
+			</form>
+		</div>
+
+		<script>
+			const electron = require('electron');
+			const {ipcRenderer} = electron;
+
+			form = document.querySelector('form');
+			form.addEventListener('submit', submitForm);
+
+			var barrel = null;
+
+			//Getting HTML
+			var barrelId = document.querySelector('#barrelId');
+			var barrelContents = document.querySelector('#barrelContents');
+			var barrelYear = document.querySelector('#barrelYear');
+			var dateCleaned = document.querySelector('#dateCleaned');
+			var dateOzinated = document.querySelector('#dateOzinated');
+			var dateToppedOff = document.querySelector('#dateToppedOff');
+			var sulfur = document.querySelector('#sulfur');
+
+			//When opened
+			ipcRenderer.on('barrel:info', function(e, b) {
+
+				barrel = b
+
+				//Filling HTML with info
+				barrelId.innerHTML = barrel._id
+				barrelContents.value = barrel.contents
+				barrelYear.value = barrel.year
+				dateCleaned.value = barrel.cleaned
+				dateOzinated.value = barrel.ozinated
+				dateToppedOff.value = barrel.toppedOff
+				sulfur.value = barrel.sulfur
+
+			});
+
+			//On delete
+			function deleteBarrel() {
+				ipcRenderer.send('barrel:remove', barrel._id)
+				ipcRenderer.send('info:close');
+				ipcRenderer.send('barrel:reload')
+			}
+
+			//On submit
+			function submitForm(e) {
+				e.preventDefault();
+				barrel.contents = barrelContents.value;
+				barrel.year = barrelYear.value;
+				barrel.cleaned = dateCleaned.value;
+				barrel.ozinated = dateOzinated.value;
+				barrel.toppedOff = dateToppedOff.value;
+				barrel.sulfur = sulfur.value;
+				ipcRenderer.send('barrel:update', barrel);
+				ipcRenderer.send('info:close');
+			}
+		</script>
+
+	</body>
+</html>

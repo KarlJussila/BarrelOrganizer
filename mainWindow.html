@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Barrel Organizer</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	</head>
+	<body style="background-color:rgb(220,220,220);user-select:none;">
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+		<div class="navbar-fixed z-depth-2" style="-webkit-app-region:drag;">
+			<nav class="nav-extended grey darken-3">
+				<div class="nav-wrapper grey darken-3 col s12" style="padding-top:1.5%;">
+					<img class="brand-logo left" src="assets/logo-lg.svg" type="image/svg+xml" style="width:120px;height:40px;" hspace="10" vspace="12">
+					<ul class="right" style="-webkit-app-region:no-drag;">
+						<li><a id="addBarrel" class="btn-floating grey darken-3"><i class="material-icons">add</i></a></li>
+						<li><a id="search" class="btn-floating grey darken-3"><i class="material-icons">search</i></a></li>
+						<li><a id="clearSearch" class="btn-floating grey darken-3"><i class="material-icons">home</i></a></li>
+						<li><a id="getCSV" class="btn-floating grey darken-3"><i class="material-icons">file_download</i></a></li>
+						<li><a id="uploadCSV" class="btn-floating grey darken-3"><i class="material-icons">file_upload</i></a>​</li>
+					</ul>
+				</div>
+			</nav>
+		</div>
+
+		<input id="upload" type="file" accept=".csv" onchange="handleFiles(this.files)" style="display:none;"/>
+
+		<div class="row">
+			<div class="col s1">
+				<div class="container" style="position:fixed;top:50%;-ms-transform:translateY(-50%);transform:translateY(-50%);">
+					<div style="padding-bottom:40%;padding-top:65px">
+						<a id="scrollUp" class="btn-floating btn-large waves-effect waves-light grey darken-3"><i class="material-icons">keyboard_arrow_up</i></a>
+					</div>
+					<div>
+						<a id="scrollDown" class="btn-floating btn-large waves-effect waves-light grey darken-3"><i class="material-icons">keyboard_arrow_down</i></a>
+					</div>
+				</div>
+			</div>
+			<div class="container col s10" style="padding-top:20px;padding-bottom:20px;">
+				<div id="barrelList" class="collection z-depth-2"></div>
+			</div>
+			<div class="col s1">
+				<div class="container" style="position:fixed;top:50%;-ms-transform:translateY(-50%);transform:translateY(-50%);">
+					<p>
+						<b id="scrollDist"></b>
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- <div class="fixed-action-btn">
+			<a id="menu" class="btn-floating btn-large grey darken-3">
+				<i class="large material-icons">menu</i>
+			</a>
+			<ul>
+				<li><a id="getCSV" class="btn-floating grey darken-3"><i class="material-icons">file_download</i></a></li>
+				<li><a id="clearSearch" class="btn-floating grey darken-3"><i class="material-icons">home</i></a></li>
+				<li><a id="search" class="btn-floating grey darken-3"><i class="material-icons">search</i></a></li>
+				<li><a id="addBarrel" class="btn-floating grey darken-3"><i class="material-icons">add</i></a></li>
+			</ul>
+		</div> -->
+
+		<script>
+			const electron = require('electron');
+			const {ipcRenderer, remote} = electron;
+
+			const ul = document.querySelector('#barrelList');
+
+			const uploadCSV = document.querySelector('#uploadCSV');
+			const getCSV = document.querySelector('#getCSV');
+			const clearSearch = document.querySelector('#clearSearch');
+			const search = document.querySelector('#search');
+			const addBarrel = document.querySelector('#addBarrel');
+
+			const upButton = document.querySelector('#scrollUp');
+			const downButton = document.querySelector('#scrollDown')
+
+			var count = 0;
+			var position = 4;
+
+			window.addEventListener('scroll', function() {
+				position = Math.floor(pageYOffset/33) + 4;
+				//document.getElementById('scrollDist').innerHTML = position;
+			});
+
+			//Generate CSV
+			function convertArrayOfObjectsToCSV(args) {  
+				var result, ctr, keys, columnDelimiter, lineDelimiter, data;
+
+				data = args.data || null;
+				if (data == null || !data.length) {
+					return null;
+				}
+
+				columnDelimiter = args.columnDelimiter || ',';
+				lineDelimiter = args.lineDelimiter || '\n';
+
+				keys = Object.keys(data[0]);
+
+				result = '';
+				result += keys.join(columnDelimiter);
+				result += lineDelimiter;
+
+				data.forEach(function(item) {
+					ctr = 0;
+					keys.forEach(function(key) {
+					if (ctr > 0) result += columnDelimiter;
+
+						result += item[key];
+						ctr++;
+					});
+					result += lineDelimiter;
+				});
+
+				return result;
+			}
+
+			//Download CSV
+			function downloadCSV(args) {  
+				var data, filename, link;
+				var csv = convertArrayOfObjectsToCSV({
+					data: args.inputData
+				});
+				if (csv == null) return;
+				//csv = csv.replace(/,true/g, '');
+				//csv = csv.replace(/_id/g, 'id');
+				//csv = csv.replace(/,isBarrel/g, '');
+
+				filename = args.filename || 'export.csv';
+
+				if (!csv.match(/^data:text\/csv/i)) {
+					csv = 'data:text/csv;charset=utf-8,' + csv;
+				}
+				data = encodeURI(csv);
+
+				link = document.createElement('a');
+				link.setAttribute('href', data);
+				link.setAttribute('download', filename);
+				link.click();
+			}
+
+			//Add barrel
+			ipcRenderer.on('barrel:add', function(e, barrel) {
+
+				ul.className = 'collection z-depth-2';
+				const a = document.createElement('a');
+				a.className = 'collection-item grey-text text-darken-3 index' + count.toString();
+				count++;
+
+				a.innerHTML = barrel._id;
+				ul.appendChild(a);
+			});
+
+			//Clear barrels
+			ipcRenderer.on('barrel:clear', function(e) {
+				ul.innerHTML = '';
+				ul.className = '';
+				count = 0;
+				position = 4;
+			});
+
+			//Download CSV
+			ipcRenderer.on('download:CSV', function(e, args) {
+				downloadCSV(args);
+			});
+
+			ul.addEventListener('click', openInfoWindow);
+			addBarrel.addEventListener('click', openAddWindow);
+			search.addEventListener('click', openSearchWindow);
+			clearSearch.addEventListener('click', clearSearchParams);
+			getCSV.addEventListener('click', requestCSV)
+			uploadCSV.addEventListener('click', fileUpload)
+
+			upButton.addEventListener('click', scrollUp)
+			downButton.addEventListener('click', scrollDown)
+
+			function openInfoWindow(e) {
+				var id = e.target.innerText;
+				ipcRenderer.send('barrel:info', id);
+			}
+
+			function openAddWindow(e) {
+				ipcRenderer.send('open:add');
+			}
+
+			function openSearchWindow(e) {
+				ipcRenderer.send('open:search');
+			}
+
+			function clearSearchParams(e) {
+				ipcRenderer.send('clear:search');
+			}
+
+			function requestCSV(e){
+				ipcRenderer.send('download:CSV');
+			}
+
+			function scrollUp(e) {
+				position = Math.max(4,position-5)
+				scrollTo(position)
+			}
+
+			function scrollDown(e) {
+				position = Math.min(count-5,position+5)
+				scrollTo(position)
+			}
+
+			function scrollTo(pos) {
+				// Scroll to a certain element
+				document.querySelector('.index'+pos).scrollIntoView({ 
+					behavior: 'smooth' 
+				});
+			}
+
+			function fileUpload(e) {
+				document.getElementById('upload').click();
+			}
+
+			function handleFiles(files) {
+				// Check for the various File API support.
+				if (window.FileReader) {
+					// FileReader are supported.
+					getAsText(files[0]);
+				} else {
+					alert('FileReader are not supported in this browser.');
+				}
+			}
+
+			function getAsText(fileToRead) {
+				var reader = new FileReader();
+				// Read file into memory as UTF-8      
+				reader.readAsText(fileToRead);
+				// Handle errors load
+				reader.onload = loadHandler;
+				reader.onerror = errorHandler;
+			}
+
+			function loadHandler(event) {
+				var csv = event.target.result;
+				CSVToObj(csv);
+			}
+
+			function processData(csv) {
+				var allTextLines = csv.split(/\r\n|\n/);
+		    }
+
+			function errorHandler(evt) {
+				if(evt.target.error.name == "NotReadableError") {
+					alert("Canno't read file !");
+				}
+			}
+
+			function CSVToObj(csv) {
+				
+				var lines = csv.split("\n");
+				var result = [];
+				var headers = lines[0].split(",");
+				
+				for(var i = 1; i < lines.length; i++) {
+
+					var obj = {};
+					var currentline = lines[i].split(",");
+
+	      			for(var j = 0;j < headers.length; j++){	
+	          			obj[headers[j]] = currentline[j];
+	      			}
+
+					result.push(obj);
+				}
+
+				for(i = 0; i < result.length; i++) {
+					ipcRenderer.send('barrel:update', result[i]);
+				}
+			}
+
+		</script>
+	</body>
+</html>

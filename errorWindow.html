@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Error</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css">
+	</head>
+	<body style="user-select:none;">
+		<div class="container">
+			<form>
+				<div>
+					<h3>Error</h3>
+					<p id="errorMessage"></p>
+				</div>
+				<button class="btn waves-effect waves-light grey darken-3" type="submit">Okay</button>
+			</form>
+		</div>
+
+		<script>
+			const electron = require('electron');
+			const {ipcRenderer} = electron;
+
+			form = document.querySelector('form');
+			form.addEventListener('submit', submitForm);
+
+			var message = document.querySelector('#errorMessage');
+
+			ipcRenderer.on('error:message', function(e, msg) {
+				message.innerText = msg;
+			});
+
+			function submitForm(e) {
+				e.preventDefault();
+				ipcRenderer.send('error:close');
+			}
+		</script>
+
+	</body>
+</html>

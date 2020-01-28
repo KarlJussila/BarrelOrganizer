@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<title>Add Barrel</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css">
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	</head>
+	<body>
+
+		<div class="navbar-fixed z-depth-2">
+			<nav>
+				<div class="nav-wrapper grey darken-3" style="user-select:none;">
+					<img class="brand-logo left" src="assets/logo-lg.svg" type="image/svg+xml" style="width:120px;height:40px;" hspace="10" vspace="12">
+					<ul class="right">
+						<li>
+							<a href="#" onclick="ipcRenderer.send('close:add')"><i id="close" class="large material-icons">close</i></a>
+						</li>
+					</ul>
+				</div>
+			</nav>
+		</div>
+
+		<div class="container" style="padding-top:30px;">
+			<form class="col s12">
+				<div class="row m8">
+					<div class="input-field">
+						<input type="text" id="barrelNum" autofocus>
+						<label class="active grey-text text-darken-2" for="barrelNum" style="user-select:none;">Barrel Number</label>
+					</div>
+				</div>	
+				<div class="row m8">
+					<div class="input-field">
+						<input type="text" id="barrelContents">
+						<label class="active grey-text text-darken-2" for="barrelContents" style="user-select:none;">Barrel Contents</label>
+					</div>
+				</div>
+				<div class="row m8">
+					<div class="input-field">
+						<input type="text" id="barrelYear">
+						<label class="active grey-text text-darken-2" for="barrelYear" style="user-select:none;">Vintage</label>
+					</div>
+				</div>
+				<div class="row m8">
+					<div class="input-field">
+						<input type="text" id="barrelCooper" autofocus>
+						<label class="active grey-text text-darken-2" for="barrelCooper" style="user-select:none;">Cooper</label>
+					</div>
+				</div>	
+				<div class="row m8">
+					<div class="input-field">
+						<input type="text" id="barrelToast">
+						<label class="active grey-text text-darken-2" for="barrelToast" style="user-select:none;">Toast</label>
+					</div>
+				</div>
+				<div class="row m8">
+					<div class="input-field">
+						<input type="text" id="barrelRegion">
+						<label class="active grey-text text-darken-2" for="barrelRegion" style="user-select:none;">Region/Forest</label>
+					</div>
+				</div>
+				<div class="row m8">
+					<div class="input-field">
+						<input type="text" id="barrelSize">
+						<label class="active grey-text text-darken-2" for="barrelSize" style="user-select:none;">Size</label>
+					</div>
+				</div>
+				<div class="row m8" style="user-select:none;">
+					<button class="btn waves-effect waves-light grey darken-3" type="submit">Add Barrel</button>
+					<button class="btn waves-effect waves-light grey darken-3" type="button" onclick="ipcRenderer.send('close:add')">Cancel</button>
+				</div>
+			</form>
+		</div>
+
+		<style>
+			/* label color */
+			.input-field label {
+				color: #000;
+			}
+			/* label focus color */
+			.row .input-field input:focus + label {
+				color: #000;
+			}
+			/* label underline focus color */
+			.row .input-field input[type=text]:focus {
+				border-bottom: 1px solid #6C6C6C;
+				box-shadow: 0 1px 0 0 #6C6C6C;
+			}
+			/* valid color */
+			.input-field input[type=text].valid {
+				border-bottom: 1px solid #000;
+				box-shadow: 0 1px 0 0 #000;
+			}
+			/* invalid color */
+			.input-field input[type=text].invalid {
+				border-bottom: 1px solid #000;
+				box-shadow: 0 1px 0 0 #000;
+			}
+			/* icon prefix focus color */
+			.input-field .prefix.active {
+				color: #000;
+			}
+		</style>
+
+		<script>
+			const electron = require('electron');
+			const {ipcRenderer} = electron;
+
+			form = document.querySelector('form');
+			form.addEventListener('submit', submitForm);
+
+			function submitForm(e) {
+				e.preventDefault();
+
+				const barrelNum = document.querySelector('#barrelNum').value;
+				const barrelContents = document.querySelector('#barrelContents').value;
+				const barrelYear = document.querySelector('#barrelYear').value;
+				const barrelCooper = document.querySelector('#barrelCooper').value;
+				const barrelToast = document.querySelector('#barrelToast').value;
+				const barrelRegion = document.querySelector('#barrelRegion').value;
+				const barrelSize = document.querySelector('#barrelSize').value;
+
+				ipcRenderer.send('barrel:add', {
+					_id: barrelNum,
+					contents: barrelContents,
+					year: barrelYear,
+					cleaned: '01/01/00',
+					ozinated: '01/01/00',
+					toppedOff: '01/01/00',
+					sulfur: '01/01/00',
+					cooper: barrelCooper,
+					toast: barrelToast,
+					region: barrelRegion,
+					size: barrelSize,
+					comments: ''
+				});
+			}
+		</script>
+
+	</body>
+</html>
