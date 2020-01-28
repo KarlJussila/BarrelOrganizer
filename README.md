@@ -1,4 +1,4 @@
-# BarrelOrganizer ![Barrel Logo](https://github.com/KarlJussila/BarrelOrganizer/blob/master/assets/barrelIcon.png | width=50)
+# BarrelOrganizer <img src="https://github.com/KarlJussila/BarrelOrganizer/blob/master/assets/barrelIcon.png" alt="Barrel Logo" width="50" height="50">
 An application to organize and search barrels
 
 ## Building the application
